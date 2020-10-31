@@ -1,4 +1,5 @@
 import sqlalchemy
+from geopy.geocoders import Nominatim
 
 def request_entry(request):
 
@@ -48,7 +49,16 @@ def adressformatcheck(zipcode, street, house):
 
 def adressgeocheck(zipcode, street, house):
 
+    location = None
+    geostr = house + " " + street + ", " + zipcode
+    geolocator = Nominatim(user_agent="sp00kr4d4r")
 
+    try:
+        location = geolocator.geocode(geostr)
+    except Exception ex:
+        return ex
+
+    return location
 
 
 
@@ -88,6 +98,6 @@ def connect_db():
         )
     
     except Exception ex:
-        return repr(ex)
+        return ex
 
     return pool
