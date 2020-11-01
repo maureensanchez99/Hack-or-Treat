@@ -3,18 +3,22 @@ from geopy.geocoders import Nominatim
 
 def request_entry(request):
 
-    if not request.args or 'zip' not in request.args or 'street' not in request.args or 'house' not in request.args:
+    if not request.args or 'name' not in request.args or 'zip' not in request.args or 'street' not in request.args or 'house' not in request.args:
         return f'invalid request format'
     
 
-    if request.args.get('zip') is None or request.args.get('street') is None or request.args.get('house') is None:
+    if request.args.get('name') is None or request.args.get('zip') is None or request.args.get('street') is None or request.args.get('house') is None:
         return f'invalid parameters'
 
+    name = str(request.args.get('name'))
     zipcode = str(request.args.get('zip'))
     street = str(request.args.get('street'))
     house = str(request.args.get('house'))
     candy = None
 
+    if len(name) < 2 or len(name) > 80:
+        return 'invalid parameters?'
+    
     if 'candy' in args and not 'delete' in args:
 
         if str(request.args.get('candy')) == 'yes':
@@ -26,17 +30,53 @@ def request_entry(request):
         else:
             return f'invalid parameters'
 
-        #update
+        if not adressformatcheck(zipcode, street, house):
+            return f'invalid adress'
+
+        coordinates = adressgeocheck(zipcode, street, house)
+
+        if coordinates is None:
+            return f'invalid adress'
+
+        if isinstance(coordinates, Exception):
+            return "API error: " + repr(coordinates)
+        
+        updatehouse(name, zipcode, street, house, location.latitude, location.longitude, candy)
+
 
     elif 'delete' in args and not 'candy' in args:
 
         if str(request.args.get('delete')) != "DELETE":
             return f'did not delete entry'
 
-        #delete
+        if not adressformatcheck(zipcode, street, house):
+            return f'invalid adress'
+
+        deletehouse(zipcode, street, house)
 
     else:
         return f'invalid request format'
+
+    return f'success'
+
+
+
+def deletehouse(zipcode, street, house):
+
+
+
+
+    return
+
+
+
+def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
+
+
+
+
+    return
+
 
 
 def adressformatcheck(zipcode, street, house):
