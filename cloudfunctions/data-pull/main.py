@@ -34,15 +34,15 @@ def request_entry(request):
         return repr(db)
 
     if flag == 0:
-        query = "SELECT name, zip_code, street, street_number, lat, lng FROM safe_houses WHERE candy IS TRUE AND (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {});".format(latmin, latmax, longmin, longmax)
+        query = "SELECT name, zip_code, street, street_number, lat, lng FROM safe_houses WHERE candy IS TRUE AND (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {}) LIMIT 100;".format(latmin, latmax, longmin, longmax)
         result = executequery(db, query)
 
     elif flag == 1:
-        query = "SELECT name, zip_code, street, street_number, lat, lng FROM safe_houses WHERE candy IS FALSE AND (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {});".format(latmin, latmax, longmin, longmax)
+        query = "SELECT name, zip_code, street, street_number, lat, lng FROM safe_houses WHERE candy IS FALSE AND (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {}) LIMIT 100;".format(latmin, latmax, longmin, longmax)
         result = executequery(db, query)
 
     elif flag == 2:
-        query = "SELECT name, zip_code, street, street_number, lat, lng FROM sex_offenders WHERE (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {});".format(latmin, latmax, longmin, longmax)
+        query = "SELECT name, zip_code, street, street_number, lat, lng FROM sex_offenders WHERE (lat BETWEEN {} AND {}) AND (lng BETWEEN {} AND {}) LIMIT 100;".format(latmin, latmax, longmin, longmax)
         result = executequery(db, query)
 
     else:
