@@ -1,9 +1,10 @@
 import sqlalchemy
+import math
 
 def request_entry(request):
 
     if not request.args or 'lat' not in request.args or 'lng' not in request.args or 'rad' not in request.args or 'flag' not in request.args:
-        return f'invalid parameters'
+        return str(request.args)
 
     latitude = safe_cast(request.args.get('lat'), float)
     longitude = safe_cast(request.args.get('lng'), float)
