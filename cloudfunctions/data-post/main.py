@@ -19,6 +19,8 @@ def request_entry(request):
     if len(name) < 2 or len(name) > 80:
         return 'invalid parameters?'
     
+    feedback = None
+
     if 'candy' in args and not 'delete' in args:
 
         if str(request.args.get('candy')) == 'yes':
@@ -41,7 +43,7 @@ def request_entry(request):
         if isinstance(coordinates, Exception):
             return "API error: " + repr(coordinates)
         
-        updatehouse(name, zipcode, street, house, location.latitude, location.longitude, candy)
+        feedback = updatehouse(name, zipcode, street, house, location.latitude, location.longitude, candy)
 
 
     elif 'delete' in args and not 'candy' in args:
@@ -52,12 +54,14 @@ def request_entry(request):
         if not adressformatcheck(zipcode, street, house):
             return f'invalid adress'
 
-        deletehouse(zipcode, street, house)
+        feedback = deletehouse(zipcode, street, house)
 
     else:
         return f'invalid request format'
 
-    return f'success'
+    if isinstance(feedback, Exception):
+        return repr(feedback)
+    return feedback
 
 
 
@@ -111,6 +115,17 @@ def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
         
         db.dispose()
         return 'cannot update house that does not belong to account'
+
+    query = "SELECT EXISTS ( SELECT zip_code FROM sex_offenders WHERE zip_code = {} AND street = {} AND street_number = {} );".format(zipcode, street, house)
+    result = executequery(db, query)
+    if isinstance(result, Exception):
+        db.dispose()
+        return result
+
+    if result[0]:
+        db.dispose()
+        return 'cannot add a house in which a sex offender lives'
+
 
     query = "INSERT INTO safe_houses(name, zip_code, street, street_number, candy, lat, lng) VALUES({},{},{},{},{},{},{});".format(name, zipcode, street, house, candy, latitude, longitude)
     result = executequery(db, query)
@@ -200,4 +215,3 @@ def executequery(db, selstr):
         return ex
 
     return result
-
