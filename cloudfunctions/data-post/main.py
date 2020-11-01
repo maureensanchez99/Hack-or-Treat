@@ -21,7 +21,7 @@ def request_entry(request):
     
     feedback = None
 
-    if 'candy' in args and not 'delete' in args:
+    if 'candy' in request.args and not 'delete' in request.args:
 
         if str(request.args.get('candy')) == 'yes':
             candy = True
@@ -43,10 +43,10 @@ def request_entry(request):
         if isinstance(coordinates, Exception):
             return "API error: " + repr(coordinates)
         
-        feedback = updatehouse(name, zipcode, street, house, location.latitude, location.longitude, candy)
+        feedback = updatehouse(name, zipcode, street, house, coordinates.latitude, coordinates.longitude, candy)
 
 
-    elif 'delete' in args and not 'candy' in args:
+    elif 'delete' in request.args and not 'candy' in request.args:
 
         if str(request.args.get('delete')) != "DELETE":
             return f'did not delete entry'
@@ -71,18 +71,18 @@ def deletehouse(zipcode, street, house):
     if isinstance(db, Exception):
         return db
 
-    query = "SELECT EXISTS ( SELECT zip_code FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {} );".format(zipcode, street, house)
-    result = executequery(db, query)
+    query = "SELECT EXISTS ( SELECT zip_code FROM safe_houses WHERE zip_code LIKE {} AND street LIKE {} AND street_number LIKE {} );".format('"' + zipcode + '"', '"' + street + '"', '"' + house + '"')
+    result = executequery(db, query, True)
     if isinstance(result, Exception):
         db.dispose()
         return result
 
-    if not result[0]:
+    if not (result[0])[0]:
         db.dispose()
         return 'cannot delete entry because it does not exist'
 
-    query = "DELETE FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {};".format(zipcode, street, house)
-    result = executequery(db, query)
+    query = "DELETE FROM safe_houses WHERE zip_code LIKE {} AND street LIKE {} AND street_number LIKE {};".format('"' + zipcode + '"', '"' + street + '"', '"' + house + '"')
+    result = executequery(db, query, False)
     db.dispose()
     if isinstance(result, Exception):
         return result
@@ -97,17 +97,17 @@ def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
     if isinstance(db, Exception):
         return db
 
-    query = "SELECT name FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {};".format(zipcode, street, house)
-    result = executequery(db, query)
+    query = "SELECT name FROM safe_houses WHERE zip_code LIKE {} AND street LIKE {} AND street_number LIKE {};".format('"' + zipcode + '"', '"' + street + '"', '"' + house + '"')
+    result = executequery(db, query, True)
     if isinstance(result, Exception):
         db.dispose()
         return result
 
-    if result is not None:
-        if result[0] == name.upper():
+    if result:
+        if str((result[0])[0]) == name.upper():
 
-            query = "UPDATE safe_houses SET candy = {} WHERE zip_code = {} AND street = {} AND street_number = {};".format(candy, zipcode, street, house)
-            result = executequery(db, query)
+            query = "UPDATE safe_houses SET candy = {} WHERE zip_code LIKE {} AND street LIKE {} AND street_number LIKE {};".format(candy, '"' + zipcode + '"', '"' + street + '"', '"' + house + '"')
+            result = executequery(db, query, False)
             db.dispose()
             if isinstance(result, Exception):
                 return result
@@ -116,19 +116,19 @@ def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
         db.dispose()
         return 'cannot update house that does not belong to account'
 
-    query = "SELECT EXISTS ( SELECT zip_code FROM sex_offenders WHERE zip_code = {} AND street = {} AND street_number = {} );".format(zipcode, street, house)
-    result = executequery(db, query)
+    query = "SELECT EXISTS ( SELECT zip_code FROM sex_offenders WHERE zip_code LIKE {} AND street LIKE {} AND street_number LIKE {} );".format('"' + zipcode + '"', '"' + street + '"', '"' + house + '"')
+    result = executequery(db, query, True)
     if isinstance(result, Exception):
         db.dispose()
         return result
 
-    if result[0]:
+    if (result[0])[0]:
         db.dispose()
         return 'cannot add a house in which a sex offender lives'
 
 
-    query = "INSERT INTO safe_houses(name, zip_code, street, street_number, candy, lat, lng) VALUES({},{},{},{},{},{},{});".format(name, zipcode, street, house, candy, latitude, longitude)
-    result = executequery(db, query)
+    query = "INSERT INTO safe_houses (name, lat, lng, street_number, street, zip_code, candy) VALUES ({},{},{},{},{},{},{});".format('"' + name + '"', latitude, longitude, '"' + house + '"', '"' + street + '"', '"' + zipcode + '"', candy)
+    result = executequery(db, quer, False)
     db.dispose()
     if isinstance(result, Exception):
         return result
@@ -200,16 +200,15 @@ def connect_db():
 
     return pool
 
-def executequery(db, selstr):
+def executequery(db, selstr, res):
 
     result = None
     try:
         conn = db.connect()
-        count = conn.execute(selstr)
-        if not count.rowcount:
-            conn.close()
-            return None
-        result = count.fetchall()
+        if res:
+            result = conn.execute(selstr).fetchall()
+        else:
+            conn.execute(selstr)
         conn.close()
     except Exception as ex:
         return ex
