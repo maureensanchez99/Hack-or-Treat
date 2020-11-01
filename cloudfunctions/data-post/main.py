@@ -139,7 +139,7 @@ def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
 
 def adressformatcheck(zipcode, street, house):
 
-    if len(zipcode) > 10 or if len(zipcode) < 2 or if len(street) > 50 or if len(street) < 2 or if len(house) > 10:
+    if len(zipcode) > 10 or len(zipcode) < 2 or len(street) > 50 or len(street) < 2 or len(house) > 10:
         return False
         
     return True
@@ -153,7 +153,7 @@ def adressgeocheck(zipcode, street, house):
 
     try:
         location = geolocator.geocode(geostr)
-    except Exception ex:
+    except Exception as ex:
         return ex
 
     return location
@@ -195,7 +195,7 @@ def connect_db():
             # ... Specify additional properties here.
         )
     
-    except Exception ex:
+    except Exception as ex:
         return ex
 
     return pool
@@ -211,7 +211,7 @@ def executequery(db, selstr):
             return None
         result = count.fetchall()
         conn.close()
-    except Exception ex:
+    except Exception as ex:
         return ex
 
     return result
