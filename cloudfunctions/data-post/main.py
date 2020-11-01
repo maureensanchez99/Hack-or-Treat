@@ -62,11 +62,28 @@ def request_entry(request):
 
 
 def deletehouse(zipcode, street, house):
+    
+    db = connect_db()
+    if isinstance(db, Exception):
+        return repr(db)
 
+    query = "SELECT EXISTS ( SELECT zip_code FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {} );".format(zipcode, street, house)
+    result = executequery(db, query)
+    if isinstance(result, Exception):
+        db.dispose()
+        return result
 
+    if not result[0]:
+        db.dispose()
+        return 'cannot delete entry because it does not exist'
 
+    query = "DELETE FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {};".format(zipcode, street, house)
+    result = executequery(db, query)
+    db.dispose()
+    if isinstance(result, Exception):
+        return result
 
-    return
+    return 'successfully deleted entry'
 
 
 
@@ -141,3 +158,16 @@ def connect_db():
         return ex
 
     return pool
+
+def executequery(db, selstr):
+
+    result = None
+    try:
+        conn = db.connect()
+        result = conn.execute(selstr).fetchall()
+        conn.close()
+    except Exception ex:
+        return ex
+
+    return result
+
