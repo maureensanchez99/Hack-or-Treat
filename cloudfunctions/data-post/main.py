@@ -65,7 +65,7 @@ def deletehouse(zipcode, street, house):
     
     db = connect_db()
     if isinstance(db, Exception):
-        return repr(db)
+        return db
 
     query = "SELECT EXISTS ( SELECT zip_code FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {} );".format(zipcode, street, house)
     result = executequery(db, query)
@@ -89,10 +89,36 @@ def deletehouse(zipcode, street, house):
 
 def updatehouse(name, zipcode, street, house, latitude, longitude, candy):
 
+    db = connect_db()
+    if isinstance(db, Exception):
+        return db
 
+    query = "SELECT name FROM safe_houses WHERE zip_code = {} AND street = {} AND street_number = {};".format(zipcode, street, house)
+    result = executequery(db, query)
+    if isinstance(result, Exception):
+        db.dispose()
+        return result
 
+    if result is not None:
+        if result[0] == name.upper():
 
-    return
+            query = "UPDATE safe_houses SET candy = {} WHERE zip_code = {} AND street = {} AND street_number = {};".format(candy, zipcode, street, house)
+            result = executequery(db, query)
+            db.dispose()
+            if isinstance(result, Exception):
+                return result
+            return 'successfully updated house'
+        
+        db.dispose()
+        return 'cannot update house that does not belong to account'
+
+    query = "INSERT INTO safe_houses(name, zip_code, street, street_number, candy, lat, lng) VALUES({},{},{},{},{},{},{});".format(name, zipcode, street, house, candy, latitude, longitude)
+    result = executequery(db, query)
+    db.dispose()
+    if isinstance(result, Exception):
+        return result
+
+    return 'successfully added new house'
 
 
 
@@ -164,7 +190,11 @@ def executequery(db, selstr):
     result = None
     try:
         conn = db.connect()
-        result = conn.execute(selstr).fetchall()
+        count = conn.execute(selstr)
+        if not count.rowcount:
+            conn.close()
+            return None
+        result = count.fetchall()
         conn.close()
     except Exception ex:
         return ex
