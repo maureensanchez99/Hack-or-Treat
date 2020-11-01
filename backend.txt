@@ -1,0 +1,28 @@
+DOCUMENTATION FOR BACKEND
+
+The client needs to send an HTTP request to the backend, specifying the data to be sent as HTTP parameters.
+The backend will respond with either an error message, a succcess message, or the data that has been requested as a string.
+
+There is two functions:
+
+1. Pull Data
+URL: https://us-central1-spook-radar.cloudfunctions.net/data-pull
+Returns inhabitant name, zipcode, street name, house number, latitude, longitude for every type of requested house within the specified radius
+parameters::
+lat (decimal): latitude in degrees of radius epicenter
+lng (decimal): longitude in degrees of radius epicenter
+rad (decimal): radius in km
+flag (int): 0 for houses with candy, 1 for houses without candy, 2 for sex offenders
+
+
+2. Post Data
+URL: https://us-central1-spook-radar.cloudfunctions.net/data-post 
+Posts a house, updates a house or deletes a house
+parameters::
+name (string): name of account in format LASTNAME, FIRSTNAME
+zip (string): zip code of house adress
+street (string): street name of house adress
+house (string): house number of adress
+candy (string): "no" if the house does not give out candy, "yes" if it does
+delete (string): if the value reads "DELETE" the selected house will be deleted
+--you have to specify EITHER candy OR delete--
